@@ -1,0 +1,20 @@
+#! /usr/bin/env sh
+function traypid() {
+    pid=`ps aux | grep embytray | grep -v grep | awk '{print $2}'`
+}
+
+# Abort if server is already running.
+traypid && [ $pid ] && exit
+
+# Launch the server, finding its location programmatically in case it's hidden.
+embydir=`ls -a /Applications | grep Emby`
+/Applications/$embydir/Contents/MacOS/EmbyServer &
+
+# Poll the tray process to terminate the server after exiting.
+while [ -z $pid ]
+do
+    traypid
+    sleep 1
+done
+lsof -p $pid +r 1
+killall EmbyServer
